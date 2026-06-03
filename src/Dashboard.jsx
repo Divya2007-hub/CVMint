@@ -136,10 +136,15 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobi
   );
 };
 
-const Topbar = ({ openMobile, active, user }) => {
+const Topbar = ({ openMobile, active, user, onSearch }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const handleQueryChange = (e) => {
+    setQuery(e.target.value);
+    onSearch?.(e.target.value);
+  };
 
   const notifs = [
     { id: 1, text: "Your resume ATS score improved to 96%", time: "2m ago", dot: "#10b981" },
@@ -160,7 +165,7 @@ const Topbar = ({ openMobile, active, user }) => {
       <div className="flex-1 max-w-sm ml-auto md:ml-6">
         <div className="relative">
           <Search size={14} className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${searchFocused ? "text-[#a259ff]" : "text-white/25"}`} />
-          <input value={query} onChange={e => setQuery(e.target.value)}
+          <input value={query} onChange={handleQueryChange}
             onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
             placeholder="Search resumes, templates..."
             className="w-full bg-white/4 border rounded-xl py-2 pl-8 pr-3 text-xs text-white placeholder-white/20 outline-none transition-all duration-300"
@@ -215,11 +220,11 @@ const Topbar = ({ openMobile, active, user }) => {
 };
 
 // ── Dashboard content ──────────────────────────────────────────────────────────
-const DashboardContent = ({ user, onCreateResume, stats, refreshResumes }) => (
+const DashboardContent = ({ user, onCreateResume, stats, refreshResumes, searchQuery }) => (
   <div className="space-y-8">
     <DashboardHero user={user} onCreateResume={onCreateResume} stats={stats} />
     <QuickActions onCreateResume={onCreateResume} />
-    <RecentResumes key={refreshResumes} onCreateResume={onCreateResume} />
+    <RecentResumes onCreateResume={onCreateResume} externalSearch={searchQuery} />
   </div>
 );
 
@@ -250,6 +255,7 @@ export default function Dashboard() {
   const [builderTemplate, setBuilderTemplate] = useState("classic");
   const [stats, setStats]               = useState(null);
   const [refreshResumes, setRefreshResumes] = useState(0);
+  const [searchQuery, setSearchQuery]   = useState("");
   const navigate = useNavigate();
 
   // Auth guard + profile bootstrap
@@ -270,8 +276,8 @@ export default function Dashboard() {
   }, [user]);
 
   const handleBuilderClose = useCallback(() => {
-    setShowBuilder(false);
-    setRefreshResumes(r => r + 1);
+  setShowBuilder(false);
+  setRefreshResumes(r => r + 1); // keep this for other purposes
   }, []);
 
   // Called from TemplatesPage when user clicks "Use Template"
@@ -289,10 +295,11 @@ export default function Dashboard() {
             onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }}
             stats={stats}
             refreshResumes={refreshResumes}
+            searchQuery={searchQuery}
           />
         );
       case "resumes":
-        return <RecentResumes key={refreshResumes} onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }} />;
+        return <RecentResumes onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }} externalSearch={searchQuery} />;
       case "templates":
         return <TemplatesPage onSelectTemplate={handleSelectTemplate} />;
       case "ats":
@@ -353,7 +360,7 @@ export default function Dashboard() {
         className="relative z-10 flex flex-col min-h-screen transition-[margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
         style={{ marginLeft: `clamp(0px, (100vw - 1024px) * 9999, ${collapsed ? "72px" : "220px"})` }}
       >
-        <Topbar openMobile={() => setMobileOpen(true)} active={active} user={user} />
+        <Topbar openMobile={() => setMobileOpen(true)} active={active} user={user} onSearch={setSearchQuery} />
         <main className="flex-1 p-5 md:p-6 lg:p-8 overflow-auto">
           <AnimatePresence mode="wait">
             <motion.div key={active}

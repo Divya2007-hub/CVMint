@@ -306,7 +306,7 @@ function timeAgo(date) {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
-export default function RecentResumes({ onCreateResume }) {
+export default function RecentResumes({ onCreateResume, externalSearch }) {
   const { exportResume, ExportPortal } = useResumeExport();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -330,6 +330,10 @@ export default function RecentResumes({ onCreateResume }) {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+  if (externalSearch !== undefined) setSearch(externalSearch);
+}, [externalSearch]);
+
   const filters = [
     { id: "all",          label: "All" },
     { id: "optimized",    label: "ATS Ready" },
@@ -339,11 +343,11 @@ export default function RecentResumes({ onCreateResume }) {
   ];
 
   const filtered = resumes.filter(r => {
-    const matchSearch = (r.title || "").toLowerCase().includes(search.toLowerCase()) ||
-                        (r.subtitle || "").toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || statusFor(r.atsScore) === filter;
-    return matchSearch && matchFilter;
-  });
+  const matchSearch = (r.title || "").toLowerCase().includes(search.toLowerCase()) ||
+                      (r.subtitle || "").toLowerCase().includes(search.toLowerCase());
+  const matchFilter = filter === "all" || statusFor(r.atsScore) === filter;
+  return matchSearch && matchFilter;
+});
 
   const handleDelete = (id) => setResumes(prev => prev.filter(r => r.id !== id));
 
@@ -377,7 +381,7 @@ export default function RecentResumes({ onCreateResume }) {
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="relative">
             <Search size={13} className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${searchFocused ? "text-[#a259ff]" : "text-white/25"}`} />
-            <input value={search} onChange={e => setSearch(e.target.value)}
+            <input value={search} onChange={e => { setSearch(e.target.value); }}
               onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
               placeholder="Search resumes…"
               className="bg-white/4 border rounded-xl py-2 pl-8 pr-3 text-xs text-white placeholder-white/20 outline-none transition-all duration-300 w-40"
