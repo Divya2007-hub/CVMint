@@ -1,3 +1,4 @@
+import { useResumeExport } from "./ResumeExporter";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
@@ -128,7 +129,7 @@ const ATSRing = ({ score, size = 52 }) => {
 };
 
 // ── Resume Card ────────────────────────────────────────────────────────────────
-const ResumeCard = ({ resume, index, onDelete }) => {
+const ResumeCard = ({ resume, index, onDelete, exportResume }) => {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -151,11 +152,16 @@ const ResumeCard = ({ resume, index, onDelete }) => {
   };
 
   const handleDownload = async () => {
-    setDownloading(true);
+  setDownloading(true);
+  try {
+    await exportResume(resume);
     await recordDownload(resume.title);
-    await new Promise(r => setTimeout(r, 1200));
+  } catch (e) {
+    console.error("Export failed", e);
+  } finally {
     setDownloading(false);
-  };
+  }
+};
 
   const lastEdited = resume.updatedAt?.toDate
     ? timeAgo(resume.updatedAt.toDate())
@@ -301,6 +307,7 @@ function timeAgo(date) {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function RecentResumes({ onCreateResume }) {
+  const { exportResume, ExportPortal } = useResumeExport();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -352,6 +359,7 @@ export default function RecentResumes({ onCreateResume }) {
 
   return (
     <div className="space-y-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+      <ExportPortal />
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* Header */}
@@ -421,7 +429,7 @@ export default function RecentResumes({ onCreateResume }) {
         <AnimatePresence mode="popLayout">
           {filtered.length > 0 ? (
             filtered.map((resume, i) => (
-              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} />
+              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} exportResume={exportResume} />
             ))
           ) : (
             <EmptyState key="empty" onCreateResume={onCreateResume} />

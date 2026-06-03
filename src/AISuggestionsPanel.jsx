@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getResumes } from "./db";
 
@@ -273,10 +273,10 @@ function AnalyzingSkeleton() {
   ];
   const [current, setCurrent] = useState(0);
 
-  useState(() => {
-    const iv = setInterval(() => setCurrent(p => Math.min(p + 1, steps.length - 1)), 900);
-    return () => clearInterval(iv);
-  });
+  useEffect(() => {
+  const iv = setInterval(() => setCurrent(p => Math.min(p + 1, steps.length - 1)), 900);
+  return () => clearInterval(iv);
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "60px 20px", gap: 24 }}>
@@ -302,7 +302,7 @@ function AnalyzingSkeleton() {
 
       <div style={{ textAlign: "center" }}>
         <p style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: "#e2e8f0", fontFamily: "monospace" }}>
-          Analyzing with Claude AI
+          Analyzing with Gemini AI
         </p>
         <AnimatePresence mode="wait">
           <motion.p
@@ -342,12 +342,12 @@ export default function AISuggestionsPanel() {
   const [loadingResumes, setLoadingResumes] = useState(true);
 
   // Load saved resumes on mount
-  useState(() => {
-    getResumes().then(r => {
-      setResumes(r);
-      setLoadingResumes(false);
-    }).catch(() => setLoadingResumes(false));
-  });
+  useEffect(() => {
+  getResumes().then(r => {
+    setResumes(r);
+    setLoadingResumes(false);
+  }).catch(() => setLoadingResumes(false));
+  }, []);
 
   const handleSelectResume = (id) => {
     setSelectedId(id);
@@ -420,7 +420,7 @@ export default function AISuggestionsPanel() {
             </div>
           </div>
           <p style={{ margin: 0, fontSize: 11.5, color: "#475569" }}>
-            Paste a job description, select your resume — Claude AI scores your match in real time.
+            Paste a job description, select your resume — Gemini AI scores your match in real time.
           </p>
         </motion.div>
 
@@ -729,7 +729,7 @@ export default function AISuggestionsPanel() {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
           style={{ textAlign: "center", marginTop: 32, fontSize: 10, color: "#1e293b", fontFamily: "monospace", letterSpacing: "0.1em" }}
         >
-          ✦ CVMint ATS · Powered by Claude AI · Real-time analysis
+          ✦ CVMint ATS · Powered by Gemini AI · Real-time analysis
         </motion.p>
       </div>
     </div>
