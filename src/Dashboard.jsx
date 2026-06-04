@@ -4,6 +4,7 @@ import QuickActions from "./QuickActions";
 import AISuggestionsPanel from "./AISuggestionsPanel";
 import ActivityTimeline from "./ActivityTimeline";
 import TemplatesPage from "./TemplatesPage";
+import { ensureUserProfile, subscribeStats, subscribeActivity } from "./db";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,7 +14,6 @@ import {
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import ResumeBuilder from "./ResumeBuilder";
-import { ensureUserProfile, subscribeStats } from "./db";
 
 // ── Background decorations ─────────────────────────────────────────────────────
 const Blobs = () => (
@@ -136,21 +136,47 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobi
   );
 };
 
+function timeAgoNotif(date) {
+  const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (secs < 60) return "Just now";
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+}
+
 const Topbar = ({ openMobile, active, user, onSearch }) => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [notifs, setNotifs] = useState([]);
+
+  useEffect(() => {
+    setQuery("");
+    onSearch?.("");
+  }, [active]);
 
   const handleQueryChange = (e) => {
     setQuery(e.target.value);
     onSearch?.(e.target.value);
   };
 
-  const notifs = [
-    { id: 1, text: "Your resume ATS score improved to 96%", time: "2m ago", dot: "#10b981" },
-    { id: 2, text: "New template 'Nova' is available", time: "1h ago", dot: "#a259ff" },
-    { id: 3, text: "Resume export ready to download", time: "3h ago", dot: "#00d4ff" },
-  ];
+  // Pull real notifications from activity log
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeActivity((activities) => {
+      setNotifs(activities.slice(0, 5).map(a => ({
+        id: a.id,
+        text: a.detail ? `${a.event} — ${a.detail}` : a.event,
+        time: a.createdAt?.toDate ? timeAgoNotif(a.createdAt.toDate()) : "Just now",
+        dot: a.tag === "CREATE" ? "#10b981"
+           : a.tag === "EXPORT" ? "#a259ff"
+           : a.tag === "SCORE"  ? "#00d4ff"
+           : a.tag === "DELETE" ? "#ef4444"
+           : "#64748b",
+      })));
+    });
+    return unsub;
+  }, [user]);
 
   const pageTitle = NAV_ITEMS.find(n => n.id === active)?.label || "Dashboard";
 
@@ -181,7 +207,9 @@ const Topbar = ({ openMobile, active, user, onSearch }) => {
           <motion.button whileTap={{ scale: 0.92 }} onClick={() => setNotifOpen(!notifOpen)}
             className="relative w-9 h-9 rounded-xl bg-white/4 border border-white/8 flex items-center justify-center text-white/45 hover:text-white hover:bg-white/8 transition-all duration-200">
             <Bell size={16} />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#a259ff]" />
+            {notifs.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#a259ff]" />
+            )}
           </motion.button>
           <AnimatePresence>
             {notifOpen && (
@@ -192,7 +220,7 @@ const Topbar = ({ openMobile, active, user, onSearch }) => {
                   className="absolute right-0 top-12 w-72 bg-[#0d1128]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
                     <span className="text-white font-semibold text-sm">Notifications</span>
-                    <span className="text-[10px] text-[#a259ff] font-semibold">3 new</span>
+                    <span className="text-[10px] text-[#a259ff] font-semibold">{notifs.length} new</span>
                   </div>
                   {notifs.map((n, i) => (
                     <motion.div key={n.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
