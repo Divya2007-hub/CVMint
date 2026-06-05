@@ -7,12 +7,16 @@ import {
   serverTimestamp, onSnapshot,
   increment,
 } from "firebase/firestore";
-import { auth } from "./firebase";
+import app, { auth } from "./firebase";
 
-export const db = getFirestore();
+export const db = getFirestore(app);
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-const uid = () => auth.currentUser?.uid;
+const uid = () => {
+  const id = auth.currentUser?.uid;
+  if (!id) throw new Error("User not authenticated");
+  return id;
+};
 const resumesCol  = () => collection(db, "users", uid(), "resumes");
 const activityCol = () => collection(db, "users", uid(), "activity");
 const statsDoc    = () => doc(db, "users", uid(), "meta", "stats");

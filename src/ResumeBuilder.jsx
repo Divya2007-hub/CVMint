@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { saveResume } from "./db";
 import ResumeRenderer from "./ResumeRenderer";
+import { auth } from "./firebase";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -459,6 +460,7 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic" }
 
   const handleSave = async () => {
     setSaving(true);
+    console.log("Current user:", auth.currentUser?.uid);
     try {
       const firstName = data.personal.firstName || "Untitled";
       const lastName  = data.personal.lastName || "";
