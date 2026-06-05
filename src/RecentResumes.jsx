@@ -8,6 +8,7 @@ import {
   ChevronRight, Sparkles, Loader2
 } from "lucide-react";
 import { getResumes, deleteResume, recordDownload } from "./db";
+import { auth } from "./firebase";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const atsColor = (score) =>
@@ -152,16 +153,16 @@ const ResumeCard = ({ resume, index, onDelete, exportResume }) => {
   };
 
   const handleDownload = async () => {
-  setDownloading(true);
-  try {
-    await exportResume(resume);
-    await recordDownload(resume.title);
-  } catch (e) {
-    console.error("Export failed", e);
-  } finally {
-    setDownloading(false);
-  }
-};
+    setDownloading(true);
+    try {
+      await exportResume(resume);
+      await recordDownload(resume.title);
+    } catch (e) {
+      console.error("Export failed", e);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const lastEdited = resume.updatedAt?.toDate
     ? timeAgo(resume.updatedAt.toDate())
@@ -328,11 +329,20 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        load();
+      } else {
+        setLoading(false);
+      }
+    });
+    return () => unsubscribe();
+  }, [load]);
 
   useEffect(() => {
-  if (externalSearch !== undefined) setSearch(externalSearch);
-}, [externalSearch]);
+    if (externalSearch !== undefined) setSearch(externalSearch);
+  }, [externalSearch]);
 
   const filters = [
     { id: "all",          label: "All" },
@@ -343,11 +353,11 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
   ];
 
   const filtered = resumes.filter(r => {
-  const matchSearch = (r.title || "").toLowerCase().includes(search.toLowerCase()) ||
-                      (r.subtitle || "").toLowerCase().includes(search.toLowerCase());
-  const matchFilter = filter === "all" || statusFor(r.atsScore) === filter;
-  return matchSearch && matchFilter;
-});
+    const matchSearch = (r.title || "").toLowerCase().includes(search.toLowerCase()) ||
+                        (r.subtitle || "").toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "all" || statusFor(r.atsScore) === filter;
+    return matchSearch && matchFilter;
+  });
 
   const handleDelete = (id) => setResumes(prev => prev.filter(r => r.id !== id));
 

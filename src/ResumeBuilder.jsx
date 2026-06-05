@@ -459,29 +459,40 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic" }
     setData(p => ({ ...p, [key]: typeof updater === "function" ? updater(p[key]) : updater }));
 
   const handleSave = async () => {
-    setSaving(true);
-    console.log("Current user:", auth.currentUser?.uid);
-    try {
-      const firstName = data.personal.firstName || "Untitled";
-      const lastName  = data.personal.lastName || "";
-      const payload = {
-        title:      data.personal.title || `${firstName} ${lastName}`.trim() || "My Resume",
-        subtitle:   data.personal.location || "",
-        template:   templateId,
-        atsScore:   null,
-        personal:   data.personal,
-        experience: data.experience,
-        education:  data.education,
-        skills:     data.skills,
-      };
-      await saveResume(payload);
-      setSaved(true);
-      setTimeout(() => { onClose?.(); }, 1200);
-    } catch (e) {
-      console.error("Save failed", e);
+  setSaving(true);
+  try {
+    const { getAuth } = await import("firebase/auth");
+    const currentUser = getAuth().currentUser;
+    
+    if (!currentUser) {
+      alert("You must be logged in to save.");
       setSaving(false);
+      return;
     }
-  };
+
+    const firstName = data.personal.firstName || "Untitled";
+    const lastName  = data.personal.lastName || "";
+    const payload = {
+      title:      data.personal.title || `${firstName} ${lastName}`.trim() || "My Resume",
+      subtitle:   data.personal.location || "",
+      template:   templateId,
+      atsScore:   null,
+      personal:   data.personal,
+      experience: data.experience,
+      education:  data.education,
+      skills:     data.skills,
+    };
+
+    console.log("Saving with uid:", currentUser.uid);
+    await saveResume(payload);
+    setSaved(true);
+    setTimeout(() => { onClose?.(); }, 1200);
+  } catch (e) {
+    console.error("Save failed:", e.message);
+    alert("Save failed: " + e.message);
+    setSaving(false);
+  }
+};
 
   // Each step receives the props it needs
   const stepProps = [
