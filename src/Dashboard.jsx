@@ -19,13 +19,13 @@ import ResumeBuilder from "./ResumeBuilder";
 const Blobs = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
     <motion.div
-      className="absolute w-[500px] h-[500px] rounded-full opacity-[0.07] blur-[120px]"
+      className="absolute w-[500px] h-[500px] rounded-full opacity-[0.04] blur-[120px]"
       style={{ background: "radial-gradient(circle, #a259ff, transparent)", top: "-10%", left: "10%" }}
       animate={{ scale: [1, 1.15, 1], x: [0, 20, 0] }}
       transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
     />
     <motion.div
-      className="absolute w-[400px] h-[400px] rounded-full opacity-[0.05] blur-[100px]"
+      className="absolute w-[400px] h-[400px] rounded-full opacity-[0.03] blur-[100px]"
       style={{ background: "radial-gradient(circle, #00d4ff, transparent)", bottom: "10%", right: "5%" }}
       animate={{ scale: [1, 1.2, 1], y: [0, -30, 0] }}
       transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
@@ -60,7 +60,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobi
   return (
     <div className="flex flex-col h-full">
       <div className={`flex items-center gap-3 px-5 py-5 border-b border-white/5 ${collapsed && !mobile ? "justify-center px-3" : ""}`}>
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#a259ff] to-[#00d4ff] flex items-center justify-center flex-shrink-0 shadow-[0_0_15px_rgba(162,89,255,0.4)]">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#a259ff] to-[#00d4ff] flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_rgba(162,89,255,0.25)]">
           <Cpu size={15} className="text-white" />
         </div>
         {(!collapsed || mobile) && (
@@ -239,7 +239,7 @@ const Topbar = ({ openMobile, active, user, onSearch }) => {
           </AnimatePresence>
         </div>
         <motion.div whileHover={{ scale: 1.05 }}
-          className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a259ff] to-[#00d4ff] flex items-center justify-center text-white text-sm font-bold cursor-pointer shadow-[0_0_12px_rgba(162,89,255,0.3)]">
+          className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a259ff] to-[#00d4ff] flex items-center justify-center text-white text-sm font-bold cursor-pointer shadow-[0_2px_8px_rgba(162,89,255,0.2)]">
           {(user?.displayName || user?.email || "U")[0].toUpperCase()}
         </motion.div>
       </div>

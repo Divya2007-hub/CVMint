@@ -31,7 +31,88 @@ const statusConfig = {
 const templateColors = ["#a259ff", "#00d4ff", "#10b981", "#f59e0b", "#ef4444", "#3b82f6"];
 const colorFor = (id = "") => templateColors[id.charCodeAt(0) % templateColors.length];
 
-// ── Resume thumbnail (generated from data, not hardcoded lines) ───────────────
+// ── Shimmer Skeleton ───────────────────────────────────────────────────────────
+const ShimmerBlock = ({ className = "", style = {} }) => (
+  <div
+    className={`relative overflow-hidden rounded-lg ${className}`}
+    style={{ background: "rgba(255,255,255,0.06)", ...style }}
+  >
+    <motion.div
+      className="absolute inset-0"
+      style={{
+        background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)",
+      }}
+      animate={{ x: ["-100%", "100%"] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+    />
+  </div>
+);
+
+const SkeletonCard = ({ index }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.07 }}
+    className="rounded-2xl overflow-hidden p-5 space-y-4"
+    style={{
+      background: "rgba(13,17,40,0.75)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      backdropFilter: "blur(20px)",
+    }}
+  >
+    <ShimmerBlock className="w-full rounded-xl" style={{ height: 140 }} />
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex-1 space-y-2">
+        <ShimmerBlock className="h-4 w-3/4" />
+        <ShimmerBlock className="h-3 w-1/2" />
+      </div>
+      <ShimmerBlock className="rounded-full flex-shrink-0" style={{ width: 52, height: 52 }} />
+    </div>
+    <div className="flex items-center justify-between">
+      <ShimmerBlock className="h-6 w-24 rounded-lg" />
+      <ShimmerBlock className="h-3 w-16" />
+    </div>
+    <ShimmerBlock className="h-3 w-32" />
+    <div className="flex gap-2 pt-1">
+      <ShimmerBlock className="flex-1 h-9 rounded-xl" />
+      <ShimmerBlock className="flex-1 h-9 rounded-xl" />
+      <ShimmerBlock className="h-9 rounded-xl" style={{ width: 36 }} />
+    </div>
+  </motion.div>
+);
+
+const SkeletonHeader = () => (
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-2">
+      <ShimmerBlock className="h-6 w-40" />
+      <ShimmerBlock className="h-3 w-28" />
+    </div>
+    <div className="flex items-center gap-2.5">
+      <ShimmerBlock className="h-8 w-40 rounded-xl" />
+      <ShimmerBlock className="h-8 w-28 rounded-xl" />
+    </div>
+  </div>
+);
+
+const SkeletonFilters = () => (
+  <div className="flex items-center gap-2 flex-wrap">
+    {[60, 80, 70, 80, 65].map((w, i) => (
+      <ShimmerBlock key={i} className="h-7 rounded-xl" style={{ width: w }} />
+    ))}
+  </div>
+);
+
+const SkeletonLoading = () => (
+  <div className="space-y-5">
+    <SkeletonHeader />
+    <SkeletonFilters />
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+      {[0, 1, 2, 3].map(i => <SkeletonCard key={i} index={i} />)}
+    </div>
+  </div>
+);
+
+// ── Resume thumbnail ───────────────────────────────────────────────────────────
 const ResumeThumbnail = ({ resume, color, hovered }) => {
   const lines = [
     { w: 0.6, h: 6, isHeader: true },
@@ -278,7 +359,7 @@ const EmptyState = ({ onCreateResume }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
     className="col-span-full flex flex-col items-center justify-center py-20 text-center">
     <motion.div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-      style={{ background: "rgba(162,89,255,0.1)", boxShadow: "0 0 30px rgba(162,89,255,0.15)" }}
+      style={{ background: "rgba(162,89,255,0.1)" }}
       animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
       <FileText size={26} className="text-[#a259ff]" />
     </motion.div>
@@ -287,11 +368,11 @@ const EmptyState = ({ onCreateResume }) => (
       Upload your LinkedIn PDF or start from scratch to create your first AI-powered resume.
     </p>
     <motion.button
-      whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(162,89,255,0.5)" }}
+      whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.96 }}
       onClick={onCreateResume}
       className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
-      style={{ background: "linear-gradient(135deg, #a259ff, #00d4ff)", boxShadow: "0 0 20px rgba(162,89,255,0.35)" }}>
+      style={{ background: "linear-gradient(135deg, #a259ff, #00d4ff)", boxShadow: "0 4px 14px rgba(162,89,255,0.3)" }}>
       <Plus size={15} /> Create Your First Resume
     </motion.button>
   </motion.div>
@@ -361,12 +442,12 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
 
   const handleDelete = (id) => setResumes(prev => prev.filter(r => r.id !== id));
 
+  // ── Skeleton while loading ──
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-          <Loader2 size={28} className="text-[#a259ff]" />
-        </motion.div>
+      <div style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
+        <SkeletonLoading />
       </div>
     );
   }
@@ -401,11 +482,11 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
                 background: searchFocused ? "rgba(162,89,255,0.06)" : "rgba(255,255,255,0.04)",
               }} />
           </div>
-          <motion.button whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(162,89,255,0.45)" }}
+          <motion.button whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onCreateResume}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white"
-            style={{ background: "linear-gradient(135deg, #a259ff, #00d4ff)", boxShadow: "0 0 15px rgba(162,89,255,0.3)" }}>
+            style={{ background: "linear-gradient(135deg, #a259ff, #00d4ff)", boxShadow: "0 4px 12px rgba(162,89,255,0.3)" }}>
             <Plus size={13} /> New Resume
           </motion.button>
         </div>

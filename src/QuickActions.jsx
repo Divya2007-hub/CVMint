@@ -99,15 +99,15 @@ const CardPattern = ({ color, hovered }) => (
     {/* Corner glow */}
     <motion.div
       className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl"
-      style={{ background: `radial-gradient(circle, ${color}30, transparent)` }}
-      animate={{ scale: hovered ? 1.4 : 1, opacity: hovered ? 1 : 0.4 }}
+      style={{ background: `radial-gradient(circle, ${color}18, transparent)` }}
+      animate={{ scale: hovered ? 1.4 : 1, opacity: hovered ? 0.7 : 0.25 }}
       transition={{ duration: 0.5 }}
     />
     {/* Bottom glow */}
     <motion.div
       className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full blur-2xl"
-      style={{ background: `radial-gradient(circle, ${color}20, transparent)` }}
-      animate={{ scale: hovered ? 1.3 : 1, opacity: hovered ? 0.8 : 0.2 }}
+      style={{ background: `radial-gradient(circle, ${color}12, transparent)` }}
+      animate={{ scale: hovered ? 1.3 : 1, opacity: hovered ? 0.5 : 0.15 }}
       transition={{ duration: 0.5, delay: 0.05 }}
     />
     {/* Grid lines */}
@@ -185,8 +185,8 @@ const ActionCard = ({ action, index }) => {
         border: `1px solid ${hovered ? action.color + "40" : "rgba(255,255,255,0.07)"}`,
         backdropFilter: "blur(24px)",
         boxShadow: hovered
-          ? `0 24px 64px ${action.color}22, 0 0 0 1px ${action.color}25, inset 0 1px 0 rgba(255,255,255,0.05)`
-          : "0 4px 24px rgba(0,0,0,0.2)",
+          ? `0 16px 40px ${action.color}15, 0 0 0 1px ${action.color}20, inset 0 1px 0 rgba(255,255,255,0.04)`
+          : "0 4px 16px rgba(0,0,0,0.15)",
         transition: "border-color 0.35s ease, box-shadow 0.35s ease",
       }}
     >
@@ -214,8 +214,8 @@ const ActionCard = ({ action, index }) => {
               }}
               animate={{
                 boxShadow: hovered
-                  ? `0 0 30px ${action.color}50, 0 0 60px ${action.color}20`
-                  : `0 0 15px ${action.color}25`,
+                  ? `0 0 18px ${action.color}35, 0 0 36px ${action.color}12`
+                  : `0 0 8px ${action.color}15`,
               }}
               transition={{ duration: 0.4 }}
             >

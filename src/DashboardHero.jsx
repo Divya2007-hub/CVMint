@@ -128,8 +128,8 @@ const StatCard = ({ def, value = 0, index }) => {
         <div className="flex items-start justify-between mb-5">
           <motion.div
             className="w-11 h-11 rounded-xl flex items-center justify-center"
-            style={{ background: `${def.color}14`, color: def.color, boxShadow: `0 0 20px ${def.color}28` }}
-            whileHover={{ scale: 1.1, boxShadow: `0 0 28px ${def.color}50` }}
+            style={{ background: `${def.color}14`, color: def.color, boxShadow: `0 0 10px ${def.color}18` }}
+            whileHover={{ scale: 1.1, boxShadow: `0 0 18px ${def.color}30` }}
             transition={{ duration: 0.2 }}
           >
             <def.icon size={19} strokeWidth={1.8} />
@@ -211,13 +211,13 @@ export const HeroCard = ({ user, onCreateResume, stats }) => {
       }} />
 
       <motion.div
-        className="absolute w-72 h-72 rounded-full opacity-30 blur-[70px] pointer-events-none"
+        className="absolute w-72 h-72 rounded-full opacity-[0.12] blur-[90px] pointer-events-none"
         style={{ background: "radial-gradient(circle, #a259ff, transparent)", top: "-30%", left: "-5%" }}
         animate={{ scale: [1, 1.2, 1], x: [0, 15, 0] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
       />
       <motion.div
-        className="absolute w-56 h-56 rounded-full opacity-20 blur-[60px] pointer-events-none"
+        className="absolute w-56 h-56 rounded-full opacity-[0.08] blur-[80px] pointer-events-none"
         style={{ background: "radial-gradient(circle, #00d4ff, transparent)", bottom: "-20%", right: "10%" }}
         animate={{ scale: [1, 1.15, 1], y: [0, -15, 0] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
@@ -291,13 +291,13 @@ export const HeroCard = ({ user, onCreateResume, stats }) => {
           className="flex flex-col gap-3 flex-shrink-0 w-full md:w-auto"
         >
           <motion.button
-            whileHover={{ scale: 1.04, boxShadow: "0 0 40px rgba(162,89,255,0.6)" }}
+            whileHover={{ scale: 1.04, boxShadow: "0 8px 24px rgba(162,89,255,0.35)" }}
             whileTap={{ scale: 0.96 }}
             onClick={onCreateResume}
             className="relative flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-sm text-white overflow-hidden group/btn"
             style={{
               background: "linear-gradient(135deg, #a259ff, #00d4ff)",
-              boxShadow: "0 0 25px rgba(162,89,255,0.4)",
+              boxShadow: "0 4px 14px rgba(162,89,255,0.25)",
             }}
           >
             <motion.div className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity"
