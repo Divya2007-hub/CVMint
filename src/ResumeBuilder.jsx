@@ -443,16 +443,16 @@ function StepPreview({ data, templateId, onTemplateChange }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-export default function ResumeBuilder({ onClose, initialTemplateId = "classic" }) {
+export default function ResumeBuilder({ onClose, initialTemplateId = "classic", initialData = null, existingId = null }) {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [templateId, setTemplateId] = useState(initialTemplateId);
+  const [templateId, setTemplateId] = useState(initialData?.template || initialTemplateId);
   const [data, setData] = useState({
-    personal:   { firstName: "", lastName: "", title: "", email: "", phone: "", location: "", website: "", summary: "" },
-    experience: [],
-    education:  [],
-    skills:     [],
+    personal:   initialData?.personal   || { firstName: "", lastName: "", title: "", email: "", phone: "", location: "", website: "", summary: "" },
+    experience: initialData?.experience || [],
+    education:  initialData?.education  || [],
+    skills:     initialData?.skills     || [],
   });
 
   const setSection = (key) => (updater) =>
@@ -484,7 +484,7 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic" }
     };
 
     console.log("Saving with uid:", currentUser.uid);
-    await saveResume(payload);
+    await saveResume(payload, existingId);
     setSaved(true);
     setTimeout(() => { onClose?.(); }, 1200);
   } catch (e) {
@@ -540,7 +540,7 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic" }
             </div>
             <div>
               <p style={{ margin: 0, fontSize: 10, color: "#475569", fontFamily: "monospace", letterSpacing: "0.1em", textTransform: "uppercase" }}>CVMint</p>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#e2e8f0" }}>Resume Builder</h2>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#e2e8f0" }}>{existingId ? "Edit Resume" : "Resume Builder"}</h2>
             </div>
           </div>
           {onClose && (

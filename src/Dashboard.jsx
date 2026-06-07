@@ -256,18 +256,60 @@ const DashboardContent = ({ user, onCreateResume, stats, refreshResumes, searchQ
   </div>
 );
 
-const PlaceholderPage = ({ title, icon: Icon, color }) => (
+const PlaceholderPage = ({ title, icon: Icon, color, description, steps }) => (
   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-    className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-    <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-      style={{ background: `${color}15`, color, boxShadow: `0 0 30px ${color}25` }}>
-      <Icon size={28} />
-    </div>
+    className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+
+    {/* Animated icon */}
+    <motion.div
+      className="relative mb-6"
+      animate={{ y: [0, -8, 0] }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center relative"
+        style={{ background: `${color}12`, boxShadow: `0 0 40px ${color}20`, border: `1px solid ${color}25` }}>
+        <Icon size={32} style={{ color }} />
+        {/* Ping rings */}
+        <motion.div className="absolute inset-0 rounded-2xl"
+          animate={{ scale: [1, 1.3], opacity: [0.3, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          style={{ border: `1px solid ${color}` }} />
+      </div>
+    </motion.div>
+
     <h2 className="text-white font-black text-2xl mb-2">{title}</h2>
-    <p className="text-white/35 text-sm max-w-xs">This section is coming soon. We're building something amazing.</p>
-    <motion.div className="mt-6 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
-      style={{ background: `linear-gradient(135deg, ${color}30, ${color}15)`, border: `1px solid ${color}30` }}
-      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+    <p className="text-white/35 text-sm max-w-sm mb-8 leading-relaxed">
+      {description || "This feature is coming soon. We're building something amazing for you."}
+    </p>
+
+    {/* Steps preview */}
+    {steps && (
+      <div className="flex flex-col gap-3 w-full max-w-xs mb-8">
+        {steps.map((step, i) => (
+          <motion.div key={i}
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 + i * 0.1 }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-left"
+            style={{ background: `${color}08`, border: `1px solid ${color}18` }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0"
+              style={{ background: `${color}20`, color, border: `1px solid ${color}30` }}>
+              {i + 1}
+            </div>
+            <span className="text-white/50 text-xs">{step}</span>
+          </motion.div>
+        ))}
+      </div>
+    )}
+
+    <motion.div
+      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
+      style={{ background: `${color}15`, border: `1px solid ${color}30`, color }}
+      animate={{ opacity: [0.7, 1, 0.7] }}
+      transition={{ duration: 2.5, repeat: Infinity }}
+    >
+      <motion.div className="w-1.5 h-1.5 rounded-full" style={{ background: color }}
+        animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
       Coming Soon
     </motion.div>
   </motion.div>
@@ -285,6 +327,37 @@ export default function Dashboard() {
   const [refreshResumes, setRefreshResumes] = useState(0);
   const [searchQuery, setSearchQuery]   = useState("");
   const navigate = useNavigate();
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
+  // Update page title on nav change
+  useEffect(() => {
+    const item = NAV_ITEMS.find(n => n.id === active);
+    document.title = item ? `${item.label} — CVMint` : "CVMint";
+  }, [active]);
+
+  // Close mobile sidebar on Escape key
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape" && mobileOpen) setMobileOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [mobileOpen]);
+
+  // Handle nav change — always close mobile sidebar
+  const handleSetActive = useCallback((id) => {
+    setActive(id);
+    setMobileOpen(false);
+  }, []);
 
   // Auth guard + profile bootstrap
   useEffect(() => {
@@ -333,11 +406,15 @@ export default function Dashboard() {
       case "ats":
         return <AISuggestionsPanel />;
       case "portfolio":
-        return <PlaceholderPage title="Portfolio Generator" icon={Globe}    color="#f59e0b" />;
+        return <PlaceholderPage title="Portfolio Generator" icon={Globe} color="#f59e0b"
+          description="Auto-generate a stunning personal portfolio website from your resume data. One click to publish."
+          steps={["Sync your resume data", "Choose a portfolio template", "Customize colors & layout", "Publish with one click"]} />;
       case "activity":
         return <ActivityTimeline />;
       case "settings":
-        return <PlaceholderPage title="Settings"            icon={Settings} color="#6b7280" />;
+        return <PlaceholderPage title="Settings" icon={Settings} color="#6b7280"
+          description="Manage your account, preferences, notification settings, and connected integrations."
+          steps={["Update profile & avatar", "Change password & security", "Manage notifications", "Connected accounts"]} />;
       default:
         return (
           <DashboardContent
@@ -362,7 +439,7 @@ export default function Dashboard() {
       <motion.aside animate={{ width: SIDEBAR_W }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="hidden lg:block fixed left-0 top-0 bottom-0 z-40 bg-[#0a0e1f]/90 backdrop-blur-xl border-r border-white/5 overflow-hidden">
-        <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed}
+        <Sidebar active={active} setActive={handleSetActive} collapsed={collapsed} setCollapsed={setCollapsed}
           mobile={false} closeMobile={() => {}} user={user} />
       </motion.aside>
 
@@ -370,13 +447,24 @@ export default function Dashboard() {
       <AnimatePresence>
         {mobileOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
-              onClick={() => setMobileOpen(false)} />
-            <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-64 bg-[#0a0e1f]/98 backdrop-blur-xl border-r border-white/8 lg:hidden">
-              <Sidebar active={active} setActive={setActive} collapsed={false} setCollapsed={() => {}}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed left-0 top-0 bottom-0 z-50 w-64 bg-[#0a0e1f]/98 backdrop-blur-xl border-r border-white/8 lg:hidden"
+              drag="x"
+              dragConstraints={{ left: -280, right: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -60) setMobileOpen(false);
+              }}
+            >
+              <Sidebar active={active} setActive={handleSetActive} collapsed={false} setCollapsed={() => {}}
                 mobile={true} closeMobile={() => setMobileOpen(false)} user={user} />
             </motion.aside>
           </>

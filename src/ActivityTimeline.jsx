@@ -224,10 +224,49 @@ export default function ActivityTimeline() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "40vh" }}>
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
-          <Loader2 size={28} color="#a259ff" />
-        </motion.div>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg, #020509 0%, #060b14 40%, #04080f 100%)", padding: "36px 24px", fontFamily: "'Inter', -apple-system, sans-serif" }}>
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          {/* Header skeleton */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: "rgba(255,255,255,0.06)" }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ width: 120, height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+                <div style={{ width: 180, height: 16, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+              </div>
+            </div>
+          </div>
+          {/* Filter pills skeleton */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 32 }}>
+            {[50, 40, 60, 55, 45, 50].map((w, i) => (
+              <div key={i} style={{ width: w, height: 28, borderRadius: 7, background: "rgba(255,255,255,0.06)", overflow: "hidden", position: "relative" }}>
+                <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1.6, repeat: Infinity, ease: "linear", delay: i * 0.1 }}
+                  style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }} />
+              </div>
+            ))}
+          </div>
+          {/* Timeline entries skeleton */}
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} style={{ display: "flex", gap: 0, paddingBottom: 32 }}>
+              <div style={{ flexShrink: 0, width: 40 }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", margin: "4px 0 0 4px", overflow: "hidden", position: "relative" }}>
+                  <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1.6, repeat: Infinity, ease: "linear", delay: i * 0.15 }}
+                    style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)" }} />
+                </div>
+              </div>
+              <div style={{ flex: 1, marginLeft: 16, borderRadius: 14, background: "rgba(15,15,28,0.95)", border: "1px solid rgba(255,255,255,0.06)", padding: "16px 18px", overflow: "hidden", position: "relative" }}>
+                <motion.div animate={{ x: ["-100%", "100%"] }} transition={{ duration: 1.6, repeat: Infinity, ease: "linear", delay: i * 0.15 }}
+                  style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)" }} />
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                  <div style={{ width: 60, height: 16, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+                  <div style={{ width: 50, height: 12, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+                </div>
+                <div style={{ width: "70%", height: 14, borderRadius: 4, background: "rgba(255,255,255,0.06)", marginBottom: 8 }} />
+                <div style={{ width: "90%", height: 10, borderRadius: 4, background: "rgba(255,255,255,0.04)" }} />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -276,9 +315,108 @@ export default function ActivityTimeline() {
 
         {/* Timeline */}
         {filtered.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            style={{ textAlign: "center", padding: "60px 0", color: "#334155" }}>
-            <p style={{ fontSize: 14, fontFamily: "monospace" }}>No activity yet. Create a resume to get started!</p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ textAlign: "center", padding: "60px 20px" }}
+          >
+            {/* Animated icon */}
+            <motion.div
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                width: 72, height: 72, borderRadius: 20, margin: "0 auto 20px",
+                background: "linear-gradient(135deg, rgba(0,245,255,0.1), rgba(139,92,246,0.1))",
+                border: "1px solid rgba(0,245,255,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 28,
+              }}
+            >
+              {filterTag === "ALL" ? "◈" : TAG_CONFIG[filterTag]?.icon || "◈"}
+            </motion.div>
+
+            {/* Pulsing dots decoration */}
+            <div style={{ display: "flex", justifyContent: "center", gap: 6, marginBottom: 20 }}>
+              {[0, 1, 2].map(i => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.2, 0.8, 0.2], scale: [1, 1.3, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+                  style={{ width: 6, height: 6, borderRadius: "50%", background: "#00f5ff" }}
+                />
+              ))}
+            </div>
+
+            <h3 style={{
+              margin: "0 0 10px", fontSize: 18, fontWeight: 800,
+              background: "linear-gradient(135deg, #e2e8f0, #94a3b8)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              fontFamily: "'Inter', sans-serif",
+            }}>
+              {filterTag === "ALL" ? "No activity yet" : `No ${filterTag.toLowerCase()} events`}
+            </h3>
+
+            <p style={{ margin: "0 0 24px", fontSize: 13, color: "#475569", fontFamily: "monospace", lineHeight: 1.7, maxWidth: 300, marginLeft: "auto", marginRight: "auto" }}>
+              {filterTag === "ALL"
+                ? "Your activity will appear here as you create, export, and manage resumes."
+                : `No ${filterTag.toLowerCase()} events found. Try a different filter.`}
+            </p>
+
+            {/* Action steps */}
+            {filterTag === "ALL" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 260, margin: "0 auto" }}>
+                {[
+                  { icon: "✦", label: "Create a resume", color: "#00f5ff", rgb: "0,245,255" },
+                  { icon: "↓", label: "Export it as PDF",  color: "#a78bfa", rgb: "167,139,250" },
+                  { icon: "↑", label: "Run ATS analysis",  color: "#10b981", rgb: "16,185,129" },
+                ].map((step, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.12 }}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 14px", borderRadius: 10,
+                      background: `rgba(${step.rgb}, 0.06)`,
+                      border: `1px solid rgba(${step.rgb}, 0.15)`,
+                    }}
+                  >
+                    <div style={{
+                      width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+                      background: `rgba(${step.rgb}, 0.15)`,
+                      border: `1px solid rgba(${step.rgb}, 0.3)`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 12, color: step.color, fontWeight: 800,
+                    }}>
+                      {step.icon}
+                    </div>
+                    <span style={{ fontSize: 12, color: "#94a3b8", fontFamily: "monospace" }}>
+                      {step.label}
+                    </span>
+                    <span style={{ marginLeft: "auto", fontSize: 10, color: step.color, fontFamily: "monospace" }}>
+                      Step {i + 1}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Filter reset button */}
+            {filterTag !== "ALL" && (
+              <motion.button
+                whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                onClick={() => setFilterTag("ALL")}
+                style={{
+                  padding: "8px 20px", borderRadius: 8, cursor: "pointer",
+                  background: "rgba(0,245,255,0.08)", border: "1px solid rgba(0,245,255,0.2)",
+                  color: "#00f5ff", fontSize: 11, fontFamily: "monospace", fontWeight: 700,
+                }}
+              >
+                ← Show all events
+              </motion.button>
+            )}
           </motion.div>
         ) : (
           <AnimatePresence mode="wait">

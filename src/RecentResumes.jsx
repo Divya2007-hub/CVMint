@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { getResumes, deleteResume, recordDownload } from "./db";
 import { auth } from "./firebase";
+import ResumeBuilder from "./ResumeBuilder";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const atsColor = (score) =>
@@ -211,7 +212,7 @@ const ATSRing = ({ score, size = 52 }) => {
 };
 
 // ── Resume Card ────────────────────────────────────────────────────────────────
-const ResumeCard = ({ resume, index, onDelete, exportResume }) => {
+const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit }) => {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -324,6 +325,7 @@ const ResumeCard = ({ resume, index, onDelete, exportResume }) => {
 
         <div className="flex items-center gap-2">
           <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+            onClick={() => onEdit(resume)}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all duration-200"
             style={{ background: `linear-gradient(135deg, ${color}28, ${color}15)`, border: `1px solid ${color}30` }}>
             <Edit3 size={12} /> Edit
@@ -395,6 +397,7 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [editingResume, setEditingResume] = useState(null);
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: true });
 
@@ -524,7 +527,7 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
         <AnimatePresence mode="popLayout">
           {filtered.length > 0 ? (
             filtered.map((resume, i) => (
-              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} exportResume={exportResume} />
+              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} exportResume={exportResume} onEdit={setEditingResume} />
             ))
           ) : (
             <EmptyState key="empty" onCreateResume={onCreateResume} />
@@ -541,6 +544,21 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
           </motion.button>
         </motion.div>
       )}
+
+      {/* Edit Resume Modal */}
+      <AnimatePresence>
+        {editingResume && (
+          <ResumeBuilder
+            initialData={editingResume}
+            existingId={editingResume.id}
+            initialTemplateId={editingResume.template || "classic"}
+            onClose={() => {
+              setEditingResume(null);
+              load(); // refresh list after save
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
