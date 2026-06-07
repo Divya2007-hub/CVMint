@@ -195,7 +195,7 @@ const Navbar = () => {
             <Cpu size={16} className="text-white" />
           </div>
           <span className="font-extrabold text-lg tracking-tight text-white">
-            Resume<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">AI</span>
+            CV<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">Mint</span>
           </span>
         </div>
 
@@ -268,47 +268,46 @@ const Hero = () => {
               animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            Powered by Claude AI · Trusted by 50,000+ professionals
+            AI-Powered Career Platform · Resume Builder · ATS Analyzer
           </motion.div>
 
-          {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.05] tracking-tight text-white mb-6"
-          >
-            Turn Your{" "}
+            {/* Heading */}
+            <motion.h1
+              className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black leading-[0.95] tracking-tight text-white mb-6"
+            >
+              Your AI
+            <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] via-[#7b6cff] to-[#00d4ff]">
-              LinkedIn PDF
-            </span>{" "}
-            Into a Stunning Resume
-          </motion.h1>
+              Career Co-Pilot
+             </span>
+            </motion.h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="text-base md:text-lg text-white/50 leading-relaxed mb-10 max-w-xl"
-          >
-          CVMint transforms your LinkedIn export into a polished, ATS-optimised resume in under 30 seconds. Powered by AI, designed by experts.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-base md:text-lg text-white/50 leading-relaxed mb-10 max-w-xl"
+            >
+             Build professional resumes, improve ATS scores, generate portfolios,
+             and accelerate your job search with AI-powered insights designed to
+             help you stand out.
+            </motion.p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.65 }}
-            className="flex flex-wrap gap-4"
-          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.65 }}
+              className="flex flex-wrap gap-4"
+            >
             <GlowButton onClick={() => navigate("/auth")}>
-              <Upload size={16} />
-              Upload LinkedIn PDF
+               Create Resume
             </GlowButton>
+
             <GlowButton variant="secondary">
               <Play size={14} />
-              See Demo
-            </GlowButton>
-          </motion.div>
+                See Demo
+              </GlowButton>
+            </motion.div>
 
           {/* Social proof */}
           <motion.div
@@ -805,25 +804,26 @@ const FinalCTA = () => {
       <FadeUp>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs text-white/60 mb-8">
           <Award size={12} className="text-[#f59e0b]" />
-          Join 50,000+ professionals
+          Build smarter. Get hired faster.
         </div>
         <h2 className="text-4xl md:text-6xl xl:text-7xl font-black text-white leading-tight mb-6">
           Build Your Resume{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] via-[#7b6cff] to-[#00d4ff]">
-            in Seconds
+            To The Next Level
           </span>
         </h2>
         <p className="text-white/40 text-base max-w-xl mx-auto mb-10">
-          Stop spending hours on formatting. Let AI do the heavy lifting — you focus on getting the job.
+          Create professional resumes, improve ATS scores, generate portfolios,
+          and unlock AI-powered insights designed to help you stand out.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <GlowButton onClick={() => navigate("/auth")} className="!px-10 !py-4 !text-base">
             <Upload size={18} />
-            Upload LinkedIn PDF — It's Free
+             Get Started Free
           </GlowButton>
           <GlowButton variant="secondary" className="!px-8 !py-4 !text-base">
             <Users size={18} />
-            View Testimonials
+            See How It Works
           </GlowButton>
         </div>
       </FadeUp>
@@ -843,10 +843,10 @@ const Footer = () => (
               <Cpu size={14} className="text-white" />
             </div>
             <span className="font-extrabold text-base text-white">
-              Resume<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">AI</span>
+              CV<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">Mint</span>
             </span>
           </div>
-          <p className="text-white/30 text-xs leading-relaxed">The world's most advanced AI-powered resume builder. Designed for ambitious professionals.</p>
+          <p className="text-white/30 text-xs leading-relaxed">AI-powered career platform for resume building, ATS optimization, portfolio generation, and career growth.</p>
         </div>
         {[
           { title: "Product", links: ["Features", "Templates", "Pricing", "Changelog"] },
@@ -866,7 +866,7 @@ const Footer = () => (
         ))}
       </div>
       <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p className="text-white/25 text-xs">© 2025 CVMint. All rights reserved.</p>
+        <p className="text-white/25 text-xs">© 2026 CVMint. All rights reserved.</p>
         <div className="flex items-center gap-4">
           {[
             { href: "#", svg: <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.7 5.5 4.4 9 4.5-.9-4.2 4-6.5 7-3.8 1.1 0 3-1.2 3-1.2z"/> },
