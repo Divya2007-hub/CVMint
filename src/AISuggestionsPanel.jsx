@@ -39,6 +39,10 @@ async function analyzeWithGemini(resumeText, jobDescription) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) throw new Error("Missing VITE_GEMINI_API_KEY in .env");
 
+  // Truncate to avoid token limit issues
+  const truncatedResume = resumeText.slice(0, 3000);
+  const truncatedJob    = jobDescription.slice(0, 2000);
+
   const prompt = `You are an expert ATS (Applicant Tracking System) analyzer and career coach.
 
 Analyze the following resume against the job description and return a JSON object with this EXACT structure (no markdown, no extra text — pure JSON only):
@@ -66,29 +70,29 @@ Analyze the following resume against the job description and return a JSON objec
 }
 
 Rules:
-- matchedKeywords: list keywords from the job description that appear in the resume (max 12)
-- missingKeywords: important keywords from the job description NOT in the resume (max 8)
-- suggestions: 4-6 specific, actionable improvements (not generic)
-- strengths: 2-4 genuine strengths found in the resume
-- gaps: 2-3 specific missing elements
-- Be honest and precise — not encouraging if the resume is weak
+- matchedKeywords: max 8 items
+- missingKeywords: max 6 items
+- suggestions: exactly 4 items
+- strengths: exactly 3 items
+- gaps: exactly 2 items
+- Return ONLY the JSON object, nothing else
 
 RESUME:
-${resumeText}
+${truncatedResume}
 
 JOB DESCRIPTION:
-${jobDescription}`;
+${truncatedJob}`;
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 1500,
+          temperature: 0.1,
+          maxOutputTokens: 8192,
         },
       }),
     }
@@ -101,7 +105,15 @@ ${jobDescription}`;
 
   const data = await response.json();
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  const clean = raw.replace(/```json|```/g, "").trim();
+  
+  // Strip markdown fences and trim
+  let clean = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+  
+  // Extract JSON object if there's extra text around it
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No valid JSON found in response");
+  clean = jsonMatch[0];
+  
   return JSON.parse(clean);
 }
 
