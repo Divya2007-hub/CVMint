@@ -11,6 +11,132 @@ import { getResumes, deleteResume, recordDownload } from "./db";
 import { auth } from "./firebase";
 import ResumeBuilder from "./ResumeBuilder";
 
+// ── Toast System ───────────────────────────────────────────────────────────────
+const TOAST_ICONS = {
+  success: "✓",
+  error:   "✕",
+  info:    "ℹ",
+  warning: "⚠",
+};
+const TOAST_COLORS = {
+  success: { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)",  color: "#10b981" },
+  error:   { bg: "rgba(239,68,68,0.12)",   border: "rgba(239,68,68,0.3)",   color: "#ef4444" },
+  info:    { bg: "rgba(162,89,255,0.12)",  border: "rgba(162,89,255,0.3)",  color: "#a259ff" },
+  warning: { bg: "rgba(245,158,11,0.12)",  border: "rgba(245,158,11,0.3)",  color: "#f59e0b" },
+};
+
+export function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const add = useCallback((message, type = "info") => {
+    const id = Date.now() + Math.random();
+    setToasts(p => [...p, { id, message, type }]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3500);
+  }, []);
+  const remove = useCallback((id) => setToasts(p => p.filter(t => t.id !== id)), []);
+  return { toasts, add, remove };
+}
+
+const ToastContainer = ({ toasts, remove }) => (
+  <div style={{ position: "fixed", top: 20, right: 20, zIndex: 9999, display: "flex", flexDirection: "column", gap: 10, pointerEvents: "none" }}>
+    <AnimatePresence>
+      {toasts.map(t => {
+        const c = TOAST_COLORS[t.type] || TOAST_COLORS.info;
+        return (
+          <motion.div
+            key={t.id}
+            initial={{ opacity: 0, x: 60, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 60, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              pointerEvents: "all",
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "12px 16px", borderRadius: 12, minWidth: 260, maxWidth: 340,
+              background: c.bg, border: `1px solid ${c.border}`,
+              backdropFilter: "blur(16px)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            }}
+          >
+            <span style={{ fontSize: 14, fontWeight: 800, color: c.color, flexShrink: 0 }}>
+              {TOAST_ICONS[t.type]}
+            </span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", flex: 1, fontFamily: "'Outfit', sans-serif" }}>
+              {t.message}
+            </span>
+            <button
+              onClick={() => remove(t.id)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", fontSize: 14, padding: 0, flexShrink: 0 }}
+            >✕</button>
+          </motion.div>
+        );
+      })}
+    </AnimatePresence>
+  </div>
+);
+
+// ── Delete Confirm Dialog ──────────────────────────────────────────────────────
+const DeleteConfirm = ({ resume, onConfirm, onCancel }) => (
+  <AnimatePresence>
+    {resume && (
+      <>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          onClick={onCancel}
+          style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            zIndex: 201, width: "100%", maxWidth: 400, padding: 24, borderRadius: 20,
+            background: "linear-gradient(135deg, #0d1128, #080c18)",
+            border: "1px solid rgba(239,68,68,0.25)",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(239,68,68,0.1)",
+          }}
+        >
+          {/* Icon */}
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+            <Trash2 size={22} color="#ef4444" />
+          </div>
+
+          <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800, color: "#e2e8f0", fontFamily: "'Outfit', sans-serif" }}>
+            Delete Resume?
+          </h3>
+          <p style={{ margin: "0 0 6px", fontSize: 13, color: "rgba(255,255,255,0.5)", fontFamily: "'Outfit', sans-serif", lineHeight: 1.6 }}>
+            Are you sure you want to delete
+          </p>
+          <p style={{ margin: "0 0 24px", fontSize: 14, fontWeight: 700, color: "#ef4444", fontFamily: "'Outfit', sans-serif" }}>
+            "{resume.title || "Untitled Resume"}"?
+          </p>
+          <p style={{ margin: "0 0 24px", fontSize: 12, color: "rgba(255,255,255,0.3)", fontFamily: "'Outfit', sans-serif" }}>
+            This action cannot be undone.
+          </p>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              onClick={onCancel}
+              style={{ flex: 1, padding: "11px", borderRadius: 10, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(239,68,68,0.3)" }} whileTap={{ scale: 0.97 }}
+              onClick={onConfirm}
+              style={{ flex: 1, padding: "11px", borderRadius: 10, cursor: "pointer", background: "linear-gradient(135deg, #ef4444, #dc2626)", border: "none", color: "white", fontSize: 13, fontWeight: 700, fontFamily: "'Outfit', sans-serif", boxShadow: "0 4px 12px rgba(239,68,68,0.25)" }}
+            >
+              Delete
+            </motion.button>
+          </div>
+        </motion.div>
+      </>
+    )}
+  </AnimatePresence>
+);
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const atsColor = (score) =>
   score >= 90 ? "#10b981" : score >= 75 ? "#00d4ff" : "#f59e0b";
@@ -150,7 +276,7 @@ const ResumeThumbnail = ({ resume, color, hovered }) => {
 };
 
 // ── Dropdown ───────────────────────────────────────────────────────────────────
-const DropdownMenu = ({ open, onClose, onDelete, onDuplicate, onShare }) => (
+const DropdownMenu = ({ open, onClose, onDeleteRequest, onDuplicate, onShare }) => (
   <AnimatePresence>
     {open && (
       <>
@@ -166,7 +292,7 @@ const DropdownMenu = ({ open, onClose, onDelete, onDuplicate, onShare }) => (
           {[
             { icon: Copy,   label: "Duplicate", action: onDuplicate, color: "#a259ff" },
             { icon: Share2, label: "Share Link", action: onShare,    color: "#00d4ff" },
-            { icon: Trash2, label: "Delete",     action: onDelete,   color: "#ef4444", danger: true },
+            { icon: Trash2, label: "Delete",     action: onDeleteRequest, color: "#ef4444", danger: true },
           ].map((item) => (
             <motion.button key={item.label}
               whileHover={{ backgroundColor: item.danger ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)" }}
@@ -212,7 +338,7 @@ const ATSRing = ({ score, size = 52 }) => {
 };
 
 // ── Resume Card ────────────────────────────────────────────────────────────────
-const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit }) => {
+const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit, onDeleteRequest, toast }) => {
   const [hovered, setHovered] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [deleted, setDeleted] = useState(false);
@@ -224,12 +350,15 @@ const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit }) => {
   const status = statusConfig[statusFor(resume.atsScore)];
   const StatusIcon = status.icon;
 
-  const handleDelete = async () => {
+  const handleDeleteConfirmed = async () => {
     setDeleted(true);
     try {
       await deleteResume(resume.id);
+      toast?.("Resume deleted successfully", "success");
     } catch (e) {
       console.error("Delete failed", e);
+      toast?.("Failed to delete resume", "error");
+      setDeleted(false);
     }
     setTimeout(() => onDelete(resume.id), 350);
   };
@@ -239,8 +368,10 @@ const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit }) => {
     try {
       await exportResume(resume);
       await recordDownload(resume.title);
+      toast?.("Resume exported as PDF!", "success");
     } catch (e) {
       console.error("Export failed", e);
+      toast?.("Export failed. Please try again.", "error");
     } finally {
       setDownloading(false);
     }
@@ -348,7 +479,7 @@ const ResumeCard = ({ resume, index, onDelete, exportResume, onEdit }) => {
               <MoreHorizontal size={14} />
             </motion.button>
             <DropdownMenu open={menuOpen} onClose={() => setMenuOpen(false)}
-              onDelete={handleDelete} onDuplicate={() => {}} onShare={() => {}} />
+              onDeleteRequest={() => onDeleteRequest(resume)} onDuplicate={() => {}} onShare={() => {}} />
           </div>
         </div>
       </div>
@@ -392,12 +523,14 @@ function timeAgo(date) {
 // ── Main ───────────────────────────────────────────────────────────────────────
 export default function RecentResumes({ onCreateResume, externalSearch }) {
   const { exportResume, ExportPortal } = useResumeExport();
+  const { toasts, add: addToast, remove: removeToast } = useToast();
   const [resumes, setResumes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [searchFocused, setSearchFocused] = useState(false);
   const [editingResume, setEditingResume] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const headerRef = useRef(null);
   const headerInView = useInView(headerRef, { once: true });
 
@@ -444,6 +577,21 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
   });
 
   const handleDelete = (id) => setResumes(prev => prev.filter(r => r.id !== id));
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
+    setDeleteTarget(null);
+    setResumes(prev => prev.filter(r => r.id !== id));
+    try {
+      await deleteResume(id);
+      addToast("Resume deleted successfully", "success");
+    } catch (e) {
+      console.error("Delete failed", e);
+      addToast("Failed to delete resume", "error");
+      load();
+    }
+  };
 
   // ── Skeleton while loading ──
   if (loading) {
@@ -527,7 +675,7 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
         <AnimatePresence mode="popLayout">
           {filtered.length > 0 ? (
             filtered.map((resume, i) => (
-              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} exportResume={exportResume} onEdit={setEditingResume} />
+              <ResumeCard key={resume.id} resume={resume} index={i} onDelete={handleDelete} exportResume={exportResume} onEdit={setEditingResume} onDeleteRequest={setDeleteTarget} toast={addToast} />
             ))
           ) : (
             <EmptyState key="empty" onCreateResume={onCreateResume} />
@@ -554,11 +702,22 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
             initialTemplateId={editingResume.template || "classic"}
             onClose={() => {
               setEditingResume(null);
-              load(); // refresh list after save
+              addToast("Resume saved successfully!", "success");
+              load();
             }}
           />
         )}
       </AnimatePresence>
+
+      {/* Delete Confirm */}
+      <DeleteConfirm
+        resume={deleteTarget}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} remove={removeToast} />
     </div>
   );
 }

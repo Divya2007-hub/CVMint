@@ -447,6 +447,7 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic", 
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [templateId, setTemplateId] = useState(initialData?.template || initialTemplateId);
   const [data, setData] = useState({
     personal:   initialData?.personal   || { firstName: "", lastName: "", title: "", email: "", phone: "", location: "", website: "", summary: "" },
@@ -463,10 +464,10 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic", 
   try {
     const { getAuth } = await import("firebase/auth");
     const currentUser = getAuth().currentUser;
-    
+
     if (!currentUser) {
-      alert("You must be logged in to save.");
       setSaving(false);
+      setSaveError("You must be logged in to save.");
       return;
     }
 
@@ -483,13 +484,12 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic", 
       skills:     data.skills,
     };
 
-    console.log("Saving with uid:", currentUser.uid);
     await saveResume(payload, existingId);
     setSaved(true);
     setTimeout(() => { onClose?.(); }, 1200);
   } catch (e) {
     console.error("Save failed:", e.message);
-    alert("Save failed: " + e.message);
+    setSaveError("Save failed: " + e.message);
     setSaving(false);
   }
 };
@@ -576,7 +576,19 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic", 
         </div>
 
         {/* Footer nav */}
-        <div style={{ padding: "14px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+        <div style={{ padding: "14px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column", gap: 10, flexShrink: 0 }}>
+          {/* Save error */}
+          {saveError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444", fontSize: 12, fontFamily: "'Outfit', sans-serif" }}
+            >
+              <span style={{ fontWeight: 700 }}>✕</span>
+              <span>{saveError}</span>
+              <button onClick={() => setSaveError("")} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 14 }}>✕</button>
+            </motion.div>
+          )}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0}
             style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 20px", borderRadius: 10, cursor: step === 0 ? "not-allowed" : "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: step === 0 ? "#334155" : "#94a3b8", fontSize: 13, fontWeight: 600, fontFamily: "'Outfit', sans-serif", opacity: step === 0 ? 0.4 : 1 }}>
@@ -606,6 +618,7 @@ export default function ResumeBuilder({ onClose, initialTemplateId = "classic", 
               {saved ? <><Check size={15} /> Saved!</> : saving ? "Saving…" : <><Sparkles size={15} /> Save Resume</>}
             </motion.button>
           )}
+          </div>
         </div>
       </motion.div>
     </div>

@@ -230,7 +230,7 @@ const LeftPanel = ({ mode }) => {
             <Cpu size={18} className="text-white" />
           </div>
           <span className="font-black text-xl tracking-tight text-white">
-            Resume<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">AI</span>
+            CV<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">Mint</span>
           </span>
         </div>
 
@@ -814,7 +814,7 @@ const AuthNav = () => {
         <Cpu size={15} className="text-white" />
       </div>
       <span className="font-black text-lg tracking-tight text-white">
-        Resume<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">AI</span>
+        CV<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a259ff] to-[#00d4ff]">Mint</span>
       </span>
     </div>
 
