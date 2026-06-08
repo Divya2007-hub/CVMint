@@ -365,8 +365,7 @@ const SectionHeader = () => {
 // ── Main export ────────────────────────────────────────────────────────────────
 export default function QuickActions() {
   return (
-    <div className="space-y-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
+    <div className="space-y-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>   
       <SectionHeader />
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {ACTIONS.map((action, i) => (

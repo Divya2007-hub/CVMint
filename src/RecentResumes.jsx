@@ -596,8 +596,7 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
   // ── Skeleton while loading ──
   if (loading) {
     return (
-      <div style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
+      <div style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>  
         <SkeletonLoading />
       </div>
     );
@@ -606,7 +605,6 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
   return (
     <div className="space-y-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
       <ExportPortal />
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* Header */}
       <motion.div ref={headerRef}

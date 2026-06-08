@@ -431,7 +431,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#080c18]" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}</style>
       <Blobs />
       <GridBg />
 
