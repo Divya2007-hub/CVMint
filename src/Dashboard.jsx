@@ -5,11 +5,107 @@ import AISuggestionsPanel from "./AISuggestionsPanel";
 import ActivityTimeline from "./ActivityTimeline";
 import TemplatesPage from "./TemplatesPage";
 import { ensureUserProfile, subscribeStats, subscribeActivity } from "./db";
+import { getResumes } from "./db";
+
+// ── Enhance Picker Modal ───────────────────────────────────────────────────────
+function EnhancePicker({ onSelect, onClose }) {
+  const [resumes, setResumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getResumes().then(r => { setResumes(r); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+      >
+        <div className="rounded-2xl overflow-hidden shadow-2xl"
+          style={{ background: "linear-gradient(135deg, #0d1128, #080c18)", border: "1px solid rgba(162,89,255,0.25)" }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-white/6">
+            <div>
+              <h3 className="text-white font-black text-lg">AI Enhance Existing</h3>
+              <p className="text-white/35 text-xs mt-0.5">Pick a resume to analyze and enhance</p>
+            </div>
+            <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors">
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Resume list */}
+          <div className="p-4 max-h-80 overflow-y-auto space-y-2">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                  <Loader2 size={24} className="text-[#a259ff]" />
+                </motion.div>
+              </div>
+            ) : resumes.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-white/30 text-sm">No resumes yet. Create one first!</p>
+              </div>
+            ) : (
+              resumes.map((resume, i) => (
+                <motion.button
+                  key={resume.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.06 }}
+                  whileHover={{ scale: 1.02, x: 4 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onSelect(resume)}
+                  className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all duration-200"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(162,89,255,0.35)"; e.currentTarget.style.background = "rgba(162,89,255,0.08)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                >
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(162,89,255,0.15)", border: "1px solid rgba(162,89,255,0.25)" }}>
+                    <FileText size={16} className="text-[#a259ff]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-sm truncate">{resume.title || "Untitled Resume"}</p>
+                    <p className="text-white/35 text-xs truncate">{resume.subtitle || resume.template || "—"}</p>
+                  </div>
+                  {resume.atsScore && (
+                    <span className="text-xs font-bold flex-shrink-0"
+                      style={{ color: resume.atsScore >= 85 ? "#10b981" : resume.atsScore >= 70 ? "#00d4ff" : "#f59e0b" }}>
+                      ATS {resume.atsScore}
+                    </span>
+                  )}
+                  <ChevronRight size={14} className="text-white/20 flex-shrink-0" />
+                </motion.button>
+              ))
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-white/6">
+            <p className="text-white/20 text-xs text-center">
+              Select a resume to pre-fill the ATS Analyzer
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </>
+  );
+}
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FileText, Layout, BarChart2, Globe,
-  Settings, LogOut, Search, Bell, Menu, X, ChevronRight, Cpu, Activity
+  Settings, LogOut, Search, Bell, Menu, X, ChevronRight, Cpu, Activity, Loader2
 } from "lucide-react";
 import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
@@ -51,7 +147,7 @@ const NAV_ITEMS = [
   { id: "settings",   label: "Settings",            icon: Settings },
 ];
 
-const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobile, user }) => {
+const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobile, user, resumeCount = 0 }) => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     await signOut(getAuth());
@@ -86,6 +182,7 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobi
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = active === item.id;
+          const showBadge = item.id === "resumes" && resumeCount > 0;
           return (
             <motion.button key={item.id}
               whileHover={{ x: collapsed && !mobile ? 0 : 3 }}
@@ -98,13 +195,36 @@ const Sidebar = ({ active, setActive, collapsed, setCollapsed, mobile, closeMobi
                 <motion.div layoutId="activeNav"
                   className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-gradient-to-b from-[#a259ff] to-[#00d4ff]" />
               )}
-              <Icon size={17} className={`flex-shrink-0 transition-colors ${isActive ? "text-[#a259ff]" : "text-white/35 group-hover:text-white/65"}`} />
+              <div className="relative flex-shrink-0">
+                <Icon size={17} className={`transition-colors ${isActive ? "text-[#a259ff]" : "text-white/35 group-hover:text-white/65"}`} />
+                {/* Badge dot for collapsed sidebar */}
+                {showBadge && (collapsed && !mobile) && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#a259ff]" />
+                )}
+              </div>
               {(!collapsed || mobile) && (
-                <span className={`text-sm font-medium whitespace-nowrap ${isActive ? "text-white" : "text-white/45 group-hover:text-white/75"}`}>
+                <span className={`text-sm font-medium whitespace-nowrap flex-1 ${isActive ? "text-white" : "text-white/45 group-hover:text-white/75"}`}>
                   {item.label}
                 </span>
               )}
-              {isActive && (!collapsed || mobile) && (
+              {/* Resume count badge */}
+              {showBadge && (!collapsed || mobile) && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md"
+                  style={{
+                    background: isActive ? "rgba(162,89,255,0.3)" : "rgba(162,89,255,0.15)",
+                    color: "#c084ff",
+                    border: "1px solid rgba(162,89,255,0.25)",
+                    minWidth: 20,
+                    textAlign: "center",
+                  }}
+                >
+                  {resumeCount > 99 ? "99+" : resumeCount}
+                </motion.span>
+              )}
+              {isActive && (!collapsed || mobile) && !showBadge && (
                 <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
                   className="ml-auto w-1.5 h-1.5 rounded-full bg-[#a259ff]" />
               )}
@@ -248,11 +368,11 @@ const Topbar = ({ openMobile, active, user, onSearch }) => {
 };
 
 // ── Dashboard content ──────────────────────────────────────────────────────────
-const DashboardContent = ({ user, onCreateResume, stats, refreshResumes, searchQuery }) => (
+const DashboardContent = ({ user, onCreateResume, stats, refreshResumes, searchQuery, onViewAll, onEnhance }) => (
   <div className="space-y-8">
-    <DashboardHero user={user} onCreateResume={onCreateResume} stats={stats} />
+    <DashboardHero user={user} onCreateResume={onCreateResume} stats={stats} onEnhance={onEnhance} />
     <QuickActions onCreateResume={onCreateResume} />
-    <RecentResumes onCreateResume={onCreateResume} externalSearch={searchQuery} />
+    <RecentResumes onCreateResume={onCreateResume} externalSearch={searchQuery} onViewAll={onViewAll} />
   </div>
 );
 
@@ -326,6 +446,8 @@ export default function Dashboard() {
   const [stats, setStats]               = useState(null);
   const [refreshResumes, setRefreshResumes] = useState(0);
   const [searchQuery, setSearchQuery]   = useState("");
+  const [showEnhancePicker, setShowEnhancePicker] = useState(false);
+  const [enhanceResume, setEnhanceResume] = useState(null);
   const navigate = useNavigate();
 
   // Lock body scroll when mobile sidebar is open
@@ -397,14 +519,16 @@ export default function Dashboard() {
             stats={stats}
             refreshResumes={refreshResumes}
             searchQuery={searchQuery}
+            onViewAll={() => handleSetActive("resumes")}
+            onEnhance={() => setShowEnhancePicker(true)}
           />
         );
       case "resumes":
-        return <RecentResumes onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }} externalSearch={searchQuery} />;
+        return <RecentResumes onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }} externalSearch={searchQuery} onViewAll={() => {}} />;
       case "templates":
         return <TemplatesPage onSelectTemplate={handleSelectTemplate} />;
       case "ats":
-        return <AISuggestionsPanel />;
+        return <AISuggestionsPanel initialResume={enhanceResume} />;
       case "portfolio":
         return <PlaceholderPage title="Portfolio Generator" icon={Globe} color="#f59e0b"
           description="Auto-generate a stunning personal portfolio website from your resume data. One click to publish."
@@ -422,6 +546,7 @@ export default function Dashboard() {
             onCreateResume={() => { setBuilderTemplate("classic"); setShowBuilder(true); }}
             stats={stats}
             refreshResumes={refreshResumes}
+            onViewAll={() => handleSetActive("resumes")}
           />
         );
     }
@@ -439,7 +564,7 @@ export default function Dashboard() {
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="hidden lg:block fixed left-0 top-0 bottom-0 z-40 bg-[#0a0e1f]/90 backdrop-blur-xl border-r border-white/5 overflow-hidden">
         <Sidebar active={active} setActive={handleSetActive} collapsed={collapsed} setCollapsed={setCollapsed}
-          mobile={false} closeMobile={() => {}} user={user} />
+          mobile={false} closeMobile={() => {}} user={user} resumeCount={stats?.resumeCount ?? 0} />
       </motion.aside>
 
       {/* Mobile sidebar */}
@@ -464,7 +589,7 @@ export default function Dashboard() {
               }}
             >
               <Sidebar active={active} setActive={handleSetActive} collapsed={false} setCollapsed={() => {}}
-                mobile={true} closeMobile={() => setMobileOpen(false)} user={user} />
+                mobile={true} closeMobile={() => setMobileOpen(false)} user={user} resumeCount={stats?.resumeCount ?? 0} />
             </motion.aside>
           </>
         )}
@@ -493,6 +618,20 @@ export default function Dashboard() {
           <ResumeBuilder
             initialTemplateId={builderTemplate}
             onClose={handleBuilderClose}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* AI Enhance Resume Picker */}
+      <AnimatePresence>
+        {showEnhancePicker && (
+          <EnhancePicker
+            onSelect={(resume) => {
+              setEnhanceResume(resume);
+              setShowEnhancePicker(false);
+              handleSetActive("ats");
+            }}
+            onClose={() => setShowEnhancePicker(false)}
           />
         )}
       </AnimatePresence>

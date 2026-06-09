@@ -182,7 +182,7 @@ const StatCard = ({ def, value = 0, index }) => {
 };
 
 // ── Hero Card ──────────────────────────────────────────────────────────────────
-export const HeroCard = ({ user, onCreateResume, stats }) => {
+export const HeroCard = ({ user, onCreateResume, stats, onEnhance }) => {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
 
@@ -314,6 +314,7 @@ export const HeroCard = ({ user, onCreateResume, stats }) => {
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            onClick={onEnhance}
             className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white/70 hover:text-white transition-colors"
             style={{
               background: "rgba(255,255,255,0.05)",
@@ -343,10 +344,10 @@ export const StatsGrid = ({ stats }) => (
 );
 
 // ── Default export ─────────────────────────────────────────────────────────────
-export default function DashboardHero({ user, onCreateResume, stats }) {
+export default function DashboardHero({ user, onCreateResume, stats, onEnhance }) {
   return (
     <div className="space-y-5" style={{ fontFamily: "'Outfit', system-ui, sans-serif" }}>
-      <HeroCard user={user} onCreateResume={onCreateResume} stats={stats} />
+      <HeroCard user={user} onCreateResume={onCreateResume} stats={stats} onEnhance={onEnhance} />
       <StatsGrid stats={stats} />
     </div>
   );

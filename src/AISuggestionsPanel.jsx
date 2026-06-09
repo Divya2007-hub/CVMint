@@ -342,11 +342,11 @@ function AnalyzingSkeleton() {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-export default function AISuggestionsPanel() {
+export default function AISuggestionsPanel({ initialResume = null }) {
   const [jobDesc, setJobDesc]     = useState("");
-  const [resumeText, setResumeText] = useState("");
+  const [resumeText, setResumeText] = useState(initialResume ? resumeToText(initialResume) : "");
   const [resumes, setResumes]     = useState([]);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(initialResume?.id || "");
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState(null);
   const [error, setError]         = useState("");

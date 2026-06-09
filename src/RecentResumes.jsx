@@ -521,7 +521,7 @@ function timeAgo(date) {
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────────
-export default function RecentResumes({ onCreateResume, externalSearch }) {
+export default function RecentResumes({ onCreateResume, externalSearch, onViewAll }) {
   const { exportResume, ExportPortal } = useResumeExport();
   const { toasts, add: addToast, remove: removeToast } = useToast();
   const [resumes, setResumes] = useState([]);
@@ -684,7 +684,9 @@ export default function RecentResumes({ onCreateResume, externalSearch }) {
       {resumes.length > 0 && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
           className="flex justify-center pt-2">
-          <motion.button whileHover={{ x: 4 }}
+          <motion.button
+            whileHover={{ x: 4 }}
+            onClick={onViewAll}
             className="flex items-center gap-1.5 text-xs text-white/30 hover:text-[#a259ff] transition-colors duration-200 font-medium">
             View all resumes <ChevronRight size={13} />
           </motion.button>
